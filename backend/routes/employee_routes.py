@@ -68,7 +68,7 @@ def get_all_employees():
         rows = execute_query("SELECT * FROM employees ORDER BY id DESC", fetch_all=True)
         employees = [format_employee(row) for row in rows]
         return jsonify(employees), 200
-    except Exception as e:       # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Failed to retrieve employees: {e!s}"}), 500
 
 
@@ -93,7 +93,7 @@ def search_employees():
         )
         employees = [format_employee(row) for row in rows]
         return jsonify(employees), 200
-    except Exception as e:     # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Search failed: {e!s}"}), 500
 
 
@@ -107,7 +107,7 @@ def get_employee_by_id(emp_id):
         if not row:
             return jsonify({"error": "Employee not found"}), 404
         return jsonify(format_employee(row)), 200
-    except Exception as e:         # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Failed to retrieve employee: {e!s}"}), 500
 
 
@@ -143,7 +143,7 @@ def create_employee():
             "SELECT * FROM employees WHERE id = %s", (new_id,), fetch_one=True
         )
         return jsonify(format_employee(created_emp)), 201
-    except Exception as e:     # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Failed to create employee: {e!s}"}), 500
 
 
@@ -187,7 +187,7 @@ def update_employee(emp_id):
             "SELECT * FROM employees WHERE id = %s", (emp_id,), fetch_one=True
         )
         return jsonify(format_employee(updated_emp)), 200
-    except Exception as e:   # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Failed to update employee: {e!s}"}), 500
 
 
@@ -203,5 +203,5 @@ def delete_employee(emp_id):
 
         execute_query("DELETE FROM employees WHERE id = %s", (emp_id,), commit=True)
         return jsonify({"message": "Employee deleted successfully"}), 200
-    except Exception as e:   # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return jsonify({"error": f"Failed to delete employee: {e!s}"}), 500

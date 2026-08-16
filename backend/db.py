@@ -97,8 +97,8 @@ def get_connection():
             autocommit=True,
         )
         return conn, "mysql"
-    except Exception:      #noqa: BLE001
-         # Fallback to SQLite in-memory mode if MySQL is not running locally
+    except Exception:  # noqa: BLE001
+        # Fallback to SQLite in-memory mode if MySQL is not running locally
         if _memory_sqlite_conn is None:
             _memory_sqlite_conn = sqlite3.connect(":memory:", check_same_thread=False)
             _memory_sqlite_conn.row_factory = sqlite3.Row
