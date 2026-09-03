@@ -1,5 +1,6 @@
 // Base URL configurable via VITE_API_URL environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Defaults to /api for same-host deployment (e.g., Nginx reverse proxy)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
