@@ -5,20 +5,20 @@ services:
     container_name: employee-mysql
 
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-employee_db}
+      MYSQL_USER: ${MYSQL_USER:-employee_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-employeepassword}
 
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
-    networks:
-      - backend-network
+    ports:
+      - "3306:3306"
 
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -26,36 +26,29 @@ services:
 
     restart: unless-stopped
 
-
-  backend:
+  app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
 
-    container_name: employee-backend
+    container_name: employee-app
+
+    ports:
+      - "80:80"
 
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-employee_db}
+      DB_USER: ${DB_USER:-employee_user}
+      DB_PASSWORD: ${DB_PASSWORD:-employeepassword}
 
     depends_on:
       mysql:
         condition: service_healthy
 
-    networks:
-      - backend-network
-
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health')"
-        ]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:80/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,44 +56,5 @@ services:
 
     restart: unless-stopped
 
-
-  frontend:
-    build:
-      context: ./
-      dockerfile: frontend/Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL}
-
-    container_name: employee-frontend
-
-    ports:
-      - "80:80"
-
-    depends_on:
-      backend:
-        condition: service_healthy
-
-    networks:
-      - backend-network
-
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-    restart: unless-stopped
-
-
 volumes:
   mysql_data:
-
-
-networks:
-  backend-network:
-    driver: bridge
